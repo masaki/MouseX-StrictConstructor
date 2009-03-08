@@ -1,73 +1,36 @@
 package MouseX::StrictConstructor;
 
 use 5.008_001;
-use strict;
-use warnings;
-use Carp ();
+use Mouse;
+use Mouse::Util;
 
 our $VERSION = '0.01';
 
-{
-    my $MODIFIER;
+sub import {
+    my $class = shift;
 
-    sub _install_modifier {
-        my ($class, $into, $type, $name, $code) = @_;
+    my $caller = caller;
+    return if $caller eq 'main';
 
-        # based Mouse::Meta::Class
-        unless ($MODIFIER) {
-            my $modifier_class = do {
-                if (eval "require Class::Method::Modifiers::Fast; 1") {
-                    'Class::Method::Modifiers::Fast';
-                }
-                else {
-                    require Class::Method::Modifiers;
-                    'Class::Method::Modifiers';
-                }
-            };
-
-            $MODIFIER = $modifier_class->can('_install_modifier');
-        }
-
-        $MODIFIER->($into, $type, $name, $code);
-    }
+    $class->_apply_role_to_class($caller);
+    $class->_apply_role_to_constructor($caller);
 }
 
-sub apply_to_class {
-    my ($class, $caller) = @_;
-
-    $class->_install_modifier(
-        $caller,
-        'after',
-        'BUILDALL',
-        sub {
-            my ($self, $params) = @_;
-
-            my %attrs =
-                map { $_ => 1 } grep { defined } map { $_->init_arg }
-                $self->meta->compute_all_applicable_attributes;
-
-            my @bad = grep { not exists $attrs{$_} } sort keys %$params;
-            if (@bad) {
-                Carp::confess(
-                    "Found unknown attribute(s) init_arg passed to the constructor: @bad"
-                );
-            }
-        },
-    );
+sub _apply_role_to_class {
+    my (undef, $into) = @_;
+    Mouse::Util::apply_all_roles($into, 'MouseX::StrictConstructor::Role::Object');
 }
 
-sub apply_to_constructor {
+sub _apply_role_to_constructor {
     my ($class, $caller) = @_;
 
-    my $constructor_class = 'Mouse::Meta::Method::Constructor';
-
-    require Mouse;
-    unless (Mouse::is_class_loaded($constructor_class)) {
-        Mouse::load_class($constructor_class);
+    my $constructor = 'Mouse::Meta::Method::Constructor';
+    unless (Mouse::is_class_loaded($constructor)) {
+        Mouse::load_class($constructor);
     }
 
     $class->_install_modifier(
-        $constructor_class,
+        $constructor,
         'around',
         '_generate_BUILDALL',
         sub {
@@ -85,8 +48,7 @@ sub apply_to_constructor {
                 my \%attrs = ($attrs);
                 my \@bad = grep { not exists \$attrs{\$_} } sort keys \%{ \$args };
                 if (\@bad) {
-                    require Carp;
-                    Carp::confess(
+                    Mouse::confess(
                         "Found unknown attribute(s) init_arg passed to the constructor: \@bad"
                     );
                 }
@@ -97,15 +59,30 @@ sub apply_to_constructor {
     );
 }
 
-sub import {
-    my $class = shift;
+{
+    my $MODIFIER = do {
+        my $class = do {
+            if (eval { Mouse::load_class('Class::Method::Modifiers::Fast') }) {
+                'Class::Method::Modifiers::Fast';
+            }
+            elsif (eval { Mouse::load_class('Class::Method::Modifiers') }) {
+                'Class::Method::Modifiers';
+            }
+            else {
+                confess 'require Class::Method::Modifiers or Class::Method::Modifiers::Fast';
+            }
+        };
 
-    my $caller = caller;
-    return if $caller eq 'main';
+        $class->can('_install_modifier');
+    };
 
-    $class->apply_to_class($caller);
-    $class->apply_to_constructor($caller);
+    sub _install_modifier {
+        my (undef, $into, $type, $name, $code) = @_;
+        $MODIFIER->($into, $type, $name, $code);
+    }
 }
+
+no Mouse;
 
 1;
 

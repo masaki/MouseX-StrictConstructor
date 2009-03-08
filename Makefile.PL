@@ -2,10 +2,12 @@ use inc::Module::Install;
 name 'MouseX-StrictConstructor';
 all_from 'lib/MouseX/StrictConstructor.pm';
 
-requires 'Mouse' => '0.18';
+requires 'Mouse' => '0.19';
+requires 'Mouse::Role';
+requires 'Mouse::Util';
 requires 'Mouse::Meta::Method::Constructor';
-requires 'Carp';
 requires 'Class::Method::Modifiers';
+
 recommends 'Class::Method::Modifiers::Fast';
 
 tests 't/*.t';
