@@ -1,5 +1,4 @@
-package # hide from PAUSE
-    MouseX::StrictConstructor::Role::Object;
+package MouseX::StrictConstructor::Role::Object;
 
 use Mouse::Role;
 
@@ -19,3 +18,27 @@ after 'BUILDALL' => sub {
 no Mouse::Role;
 
 1;
+
+=head1 NAME
+
+MouseX::StrictConstructor::Role::Object - A strict constructor role for Mouse::Object
+
+=head1 DESCRIPTION
+
+This role provides a method modifier for C<BUILDALL> from C<Mouse::Object>
+that implements strict argument checking for your class.
+
+=head1 AUTHOR
+
+NAKAGAWA Masaki E<lt>masaki@cpan.orgE<gt>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 SEE ALSO
+
+L<Mouse::Role>, L<MouseX::StrictConstructor>
+
+=cut

@@ -88,19 +88,39 @@ no Mouse;
 
 =head1 NAME
 
-MouseX::StrictConstructor
+MouseX::StrictConstructor - Make strict constructor
 
 =head1 SYNOPSIS
 
+    package MyClass;
+    use Mouse;
     use MouseX::StrictConstructor;
+
+    has 'good' => (is => 'rw');
+
+    package main;
+
+    MyClass->new(good => 1);           # OK
+    MyClass->new(bad  => 1);           # NG, dies
+    MyClass->new(good => 1, bad => 1); # NG, dies too
 
 =head1 DESCRIPTION
 
-MouseX::StrictConstructor is
+This module makes your constructors B<strict>.
+If your constructor is called with an attribute init argument
+that your class does not declare, then it dies.
+
+=head1 METHODS
+
+=head2 import
 
 =head1 AUTHOR
 
 NAKAGAWA Masaki E<lt>masaki@cpan.orgE<gt>
+
+=head1 THANKS TO
+
+L<MooseX::StrictConstructor/AUTHOR>
 
 =head1 LICENSE
 
@@ -108,5 +128,7 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =head1 SEE ALSO
+
+L<Mouse>, L<MouseX::StrictConstructor::Role::Object>
 
 =cut

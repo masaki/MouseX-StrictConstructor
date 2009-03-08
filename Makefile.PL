@@ -8,6 +8,7 @@ requires 'Mouse::Util';
 requires 'Mouse::Meta::Method::Constructor';
 requires 'Class::Method::Modifiers';
 
+recommends 'Any::Moose' => '0.05';
 recommends 'Class::Method::Modifiers::Fast';
 
 tests 't/*.t';
